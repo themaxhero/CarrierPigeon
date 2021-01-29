@@ -1,0 +1,15 @@
+{
+  "repository": {},
+  "description": " ",
+  "license": "MIT",
+  "scripts": {
+    "deploy": "NODE_ENV=production parcel build index.html",
+    "watch": "parcel watch index.html"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "elm-hot": "^1.1.5",
+    "node-elm-compiler": "^5.0.5",
+    "parcel": "1.12.4"
+  }
+}
