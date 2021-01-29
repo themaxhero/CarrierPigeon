@@ -16,8 +16,8 @@ defmodule CarrierPigeon.Rooms.Room do
     owner: User.t(),
   }
 
-  @casting_fields ~w(name type member_ids owner_id)
-  @required_fields ~w(name type member_ids owner_id)
+  @casting_fields [:name, :type, :members, :owner]
+  @required_fields [:name, :type, :members, :owner]
 
   schema "rooms" do
     field :name, :string
@@ -56,8 +56,8 @@ defmodule CarrierPigeon.Rooms.Room do
   end
 
   @spec changeset(%__MODULE__{} | changeset, creation_attrs) :: changeset
-  def changeset(user, attrs) do
-    user
+  def changeset(room \\ %__MODULE__{}, attrs) do
+    room
     |> cast(attrs, @casting_fields)
     |> validate_required(@required_fields)
     |> validate_format(:owner_id, @uuid_regexp)

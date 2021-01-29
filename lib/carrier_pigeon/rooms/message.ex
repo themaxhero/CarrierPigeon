@@ -7,8 +7,8 @@ defmodule CarrierPigeon.Rooms.Message do
 
   @primary_key { :msg_id, :binary_id, autogenerate: true }
 
-  @casting_fields ~w(content room_id sender_id)
-  @required_fields ~w(content room_id sender_id)
+  @casting_fields [:content, :room_id, :sender_id]
+  @required_fields [:content, :room_id, :sender_id]
 
   @uuid_regexp ~r/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
@@ -49,7 +49,6 @@ defmodule CarrierPigeon.Rooms.Message do
     user
     |> cast(attrs, @casting_fields)
     |> validate_required(@required_fields)
-    |> validate_format(:content, @content_regexp)
     |> validate_format(:room_id, @uuid_regexp)
     |> validate_format(:sender_id, @uuid_regexp)
   end

@@ -9,8 +9,8 @@ defmodule CarrierPigeon.Profiles.Profile do
 
   @uuid_regexp ~r/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
-  @casting_fields ~w(nickname avatar room_id sender_id)
-  @required_fields ~w(nickname room_id sender_id)
+  @casting_fields [:nickname, :avatar, :room_id, :sender_id]
+  @required_fields [:nickname, :room_id, :sender_id]
 
   @type t :: %__MODULE__{
     nickname: String.t(),
@@ -50,7 +50,7 @@ defmodule CarrierPigeon.Profiles.Profile do
       changeset,
       field,
       fn (_, value) ->
-        Enum.all?(value, &(String.match(&1, @uuid_regexp)))
+        Enum.all?(value, &(String.match?(&1, @uuid_regexp)))
       end
     )
   end

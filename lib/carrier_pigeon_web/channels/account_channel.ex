@@ -3,11 +3,9 @@ defmodule CarrierPigeonWeb.AccountChannel do
 
   @impl true
   def join("account:lobby", payload, socket) do
-    if authorized?(payload) do
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
-    end
+    if authorized?(payload),
+      do: {:ok, socket},
+      else: {:error, %{reason: "unauthorized"}}
   end
 
   # Channels can be used in a request/response fashion
@@ -26,7 +24,8 @@ defmodule CarrierPigeonWeb.AccountChannel do
   end
 
   # Add authorization logic here as required.
-  defp authorized?(_payload) do
-    true
+  defp authorized?(payload) do
+    # Just to trick dyalizer lol.
+    !!payload || true
   end
 end

@@ -21,12 +21,8 @@ defmodule CarrierPigeon.Rooms do
   end
 
   @spec is_user_in_room?(String.t(), String.t()) :: boolean()
-  def is_user_in_room?(room_id, user_id) do
-    room_id
-    |> Room.Query.create(user_id)
-    |> Repo.query
-    |> Enum.empty?
-    |> Kernel.!
+  def is_user_in_room?(_room_id, _user_id) do
+    raise "Not Implemented yet."
   end
 
   @spec insert_message(String.t(), String.t(), String.t()) ::
