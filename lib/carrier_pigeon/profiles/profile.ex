@@ -7,7 +7,7 @@ defmodule CarrierPigeon.Profiles.Profile do
 
   @primary_key { :profile_id, :binary_id, autogenerate: true }
 
-  @uuid_regexp ~r/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+  @uuid_regexp ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
   @casting_fields [:nickname, :avatar, :room_id, :sender_id]
   @required_fields [:nickname, :room_id, :sender_id]
@@ -40,7 +40,7 @@ defmodule CarrierPigeon.Profiles.Profile do
 
   @type creation_attrs :: %{
     nickname: String.t(),
-    avatar: String.t(),
+    avatar: String.t() | nil,
     room_ids: [String.t()],
     owner_id: String.t(),
   }

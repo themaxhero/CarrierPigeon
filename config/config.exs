@@ -18,6 +18,11 @@ config :carrier_pigeon, CarrierPigeonWeb.Endpoint,
   pubsub_server: CarrierPigeon.PubSub,
   live_view: [signing_salt: "2tK3WdTg"]
 
+
+config :carrier_pigeon, CarrierPigeon.Accounts.Guardian,
+  issuer: "carrier_pigeon",
+  secret_key: "My6Po0wL0CKU25aKsWyJcIlr8MkImGfgzr3u2ZotV"
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",

@@ -4,6 +4,7 @@ defmodule CarrierPigeon.Rooms.Room do
 
   alias CarrierPigeon.Accounts.User, as: User
   alias CarrierPigeon.Profiles.Profile, as: Profile
+  alias CarrierPigeon.Rooms.Message, as: Message
 
   @primary_key { :room_id, :binary_id, autogenerate: true }
 
@@ -26,10 +27,14 @@ defmodule CarrierPigeon.Rooms.Room do
     has_many :members, Profile,
       foreign_key: :profile_id
 
-    belongs_to :owner, User,
-      foreign_key: :user_id,
-      references: :user_id,
+    belongs_to :owner, Profile,
+      foreign_key: :profile_id,
+      references: :profile_id,
       type: :binary_id
+
+    has_many :messages, Message,
+      foreign_key: :msg_id,
+      on_delete: :delete_all
 
     timestamps()
   end
@@ -40,9 +45,9 @@ defmodule CarrierPigeon.Rooms.Room do
 
   @type creation_attrs :: %{
     optional(:name) => String.t(),
-    type: atom(),
+    optional(:owner_id) => String.t(),
+    type: :pm | :group,
     member_ids: [String.t()],
-    owner_id: String.t()
   }
 
   def validate_members(changeset, field) do
@@ -68,16 +73,11 @@ defmodule CarrierPigeon.Rooms.Room do
     import Ecto.Query
 
     alias Ecto.Queryable
-    alias CarrierPigeon.Accounts.User, as: User
-    alias CarrierPigeon.Rooms.Room, as: Room
 
-    @spec is_user_in_room?(binary(), binary()) :: Queryable.t()
-    def is_user_in_room?(room_id, profile_id) do
-      from p in Room,
-        join: c in assoc(p, :members),
-        where: c.profile_id == ^profile_id,
-        limit: 1,
-        select: c
-    end
+    @spec is_user_in_room?(String.t(), String.t()) :: Queryable.t()
+    def is_user_in_room?(room_id, profile_id),
+      do: from rm in "room_members",
+        where: rm.room_id == ^room_id and rm.profile_id == ^profile_id,
+        select: count(rm) > 0
   end
 end

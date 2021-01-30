@@ -10,7 +10,7 @@ defmodule CarrierPigeon.Rooms.Message do
   @casting_fields [:content, :room_id, :sender_id]
   @required_fields [:content, :room_id, :sender_id]
 
-  @uuid_regexp ~r/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+  @uuid_regexp ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
   @type t :: %__MODULE__{
     content: String.t(),

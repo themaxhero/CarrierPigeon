@@ -6,15 +6,36 @@ defmodule CarrierPigeon.AccountsTest do
   describe "users" do
     alias CarrierPigeon.Accounts.User
 
-    @valid_attrs %{email: "some email", name: "some name", password_hash: "some password_hash", username: "some username"}
-    @update_attrs %{email: "some updated email", name: "some updated name", password_hash: "some updated password_hash", username: "some updated username"}
-    @invalid_attrs %{email: nil, name: nil, password_hash: nil, username: nil}
+    @created_user_password "abc"
+
+    @valid_attrs %{
+      email: "some@email.com.br",
+      name: "Cleber de Oliveira",
+      password: @created_user_password,
+      username: "destroyer123"
+    }
+
+    @updated_user_password "def"
+
+    @update_attrs %{
+      email: "some.other@gmail.com",
+      name: "José dos Santos",
+      password: @updated_user_password,
+      username: "fallenAngel355"
+    }
+
+    @invalid_attrs %{
+      email: nil,
+      name: nil,
+      password: nil,
+      username: nil
+    }
 
     def user_fixture(attrs \\ %{}) do
       {:ok, user} =
         attrs
         |> Enum.into(@valid_attrs)
-        |> Accounts.create_user()
+        |> Accounts.create_user
 
       user
     end
@@ -31,11 +52,10 @@ defmodule CarrierPigeon.AccountsTest do
 
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
-      assert user.email == "some email"
-      assert user.name == "some name"
-      assert user.password_hash == "some password_hash"
-      assert user.username == "some username"
+      assert {:ok, user} == Argon2.check_pass(user, @created_user_password, hash_key: :password)
+      assert user.username == "destroyer123"
     end
+
 
     test "create_user/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Accounts.create_user(@invalid_attrs)
@@ -44,10 +64,8 @@ defmodule CarrierPigeon.AccountsTest do
     test "update_user/2 with valid data updates the user" do
       user = user_fixture()
       assert {:ok, %User{} = user} = Accounts.update_user(user, @update_attrs)
-      assert user.email == "some updated email"
-      assert user.name == "some updated name"
-      assert user.password_hash == "some updated password_hash"
-      assert user.username == "some updated username"
+      assert {:ok, user} == Argon2.check_pass(user, @updated_user_password, hash_key: :password)
+      assert user.username == "fallenAngel355"
     end
 
     test "update_user/2 with invalid data returns error changeset" do
@@ -66,5 +84,18 @@ defmodule CarrierPigeon.AccountsTest do
       user = user_fixture()
       assert %Ecto.Changeset{} = Accounts.change_user(user)
     end
+
+    test "authenticate_user/2 returns ok on correct data" do
+      user = user_fixture()
+      password = @created_user_password
+      assert { :ok, token } == Accounts.authenticate_user(user.email, password)
+    end
+
+    test "authenticate_user/2 returns error on bad data" do
+      user = user_fixture()
+      password = "other_password123"
+      assert { :error, :invalid_credentials } == Accounts.authenticate_user(user.email, password)
+    end
+
   end
 end

@@ -2,11 +2,31 @@ defmodule CarrierPigeon.Accounts do
   @moduledoc """
   The Accounts context.
   """
-
-  import Ecto.Query, warn: false
   alias CarrierPigeon.Repo
+  alias CarrierPigeon.Guardian
 
   alias CarrierPigeon.Accounts.User
+  alias User.Query, as: UserQuery
+  alias Argon2
+
+  defp autenticate_user_verify_pass(nil, _),
+    do: { :error, :invalid_credentials }
+  defp autenticate_user_verify_pass(user, password) do
+    if Argon2.verify_pass(password, user.password) do
+      { :ok, token, _ } = Guardian.encode_and_sign(user, %{})
+
+      { :ok, token }
+    else
+      { :error, :invalid_credentials }
+    end
+  end
+
+  def authenticate_user(login, password) do
+    login
+    |> UserQuery.query_user_by_email
+    |> Repo.one
+    |> autenticate_user_verify_pass(password)
+  end
 
   @doc """
   Returns the list of users.

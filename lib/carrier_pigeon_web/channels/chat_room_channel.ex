@@ -4,14 +4,17 @@ defmodule CarrierPigeonWeb.ChatRoomChannel do
   alias CarrierPigeon.Rooms, as: Rooms
 
   @spec can_join?(String.t(), map(), Socket.t()) :: boolean()
-  defp can_join?(room_id, _payload, _socket) when is_binary(room_id) do
-    true
+  defp can_join?(room_id, _payload, socket) when is_binary(room_id) do
+    Rooms.is_user_in_room?(room_id, socket.assigns[:user_id])
   end
 
   @type topic :: String.t()
   @type channel_name :: <<_::64, _::_*8>>
 
   @impl true
+  @spec join(channel_name, map(), Phoenix.Socket.t()) ::
+    {:ok, Phoenix.Socket.t()}
+    | {:error, %{reason: binary()}}
   def join("chat_room:" <> room_id, _, socket) when is_binary(room_id) do
     with \
       %{ user_id: user_id } <- socket.assigns,

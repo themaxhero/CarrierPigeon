@@ -1,6 +1,9 @@
 defmodule CarrierPigeonWeb.UserSocket do
   use Phoenix.Socket
 
+  alias CarrierPigeon.Guardian
+  alias CarrierPigeonWeb.{GuardianSerializer}
+
   ## Channels
   # channel "room:*", CarrierPigeonWeb.RoomChannel
   channel "account:*", CarrierPigeonWeb.AccountChannel
@@ -17,9 +20,19 @@ defmodule CarrierPigeonWeb.UserSocket do
   #
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
+
   @impl true
-  def connect(_params, socket, _connect_info) do
-    {:ok, socket}
+  def connect(%{ token: token }, socket) do
+    with \
+      { :ok, claims } <- Guardian.decode_and_verify(token),
+      { :ok, user } <- GuardianSerializer.from_token(claims["sub"]),
+      socket <- assign(socket, :user_id, user.user_id)
+    do
+      {:ok, socket}
+    else
+      {:error, _reason} ->
+        :error
+    end
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:
@@ -33,5 +46,5 @@ defmodule CarrierPigeonWeb.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(_socket), do: nil
+  def id(socket), do: "user_socket:#{socket.assigns[:user_id]}"
 end

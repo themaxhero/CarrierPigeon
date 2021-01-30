@@ -48,8 +48,16 @@ defmodule CarrierPigeon.Accounts.User do
     |> validate_format(:email, @email_regexp)
     |> validate_format(:name, @name_regexp)
     |> validate_format(:username, @username_regexp)
-    |> put_password_hash()
+    |> put_password_hash
     |> unique_constraint(:username)
     |> unique_constraint(:email)
+  end
+
+  defmodule Query do
+    import Ecto.Query, only: [from: 2]
+    alias CarrierPigeon.Accounts.User
+
+    def query_user_by_email(login),
+      do: from u in User, where: u.email == ^login
   end
 end
