@@ -73,11 +73,20 @@ defmodule CarrierPigeon.Rooms.Room do
     import Ecto.Query
 
     alias Ecto.Queryable
+    alias CarrierPigeon.Rooms.Room
 
     @spec is_user_in_room?(String.t(), String.t()) :: Queryable.t()
     def is_user_in_room?(room_id, profile_id),
       do: from rm in "room_members",
         where: rm.room_id == ^room_id and rm.profile_id == ^profile_id,
         select: count(rm) > 0
+
+    @spec all_rooms_for(String.t()) :: Queryable.t()
+    def all_rooms_for(profile_id) do
+      from rm in "room_members",
+        join: r in Room, on: r.room_id == rm.room_id,
+        where: rm.profile_id == ^profile_id,
+        select: r
+    end
   end
 end

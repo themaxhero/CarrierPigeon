@@ -39,8 +39,8 @@ defmodule CarrierPigeon.Profiles.Profile do
   }
 
   @type creation_attrs :: %{
+    optional(:avatar) => String.t(),
     nickname: String.t(),
-    avatar: String.t() | nil,
     room_ids: [String.t()],
     owner_id: String.t(),
   }
