@@ -5,6 +5,7 @@ defmodule CarrierPigeon.RoomsTest do
 
   describe "rooms" do
     alias CarrierPigeon.Rooms.Room
+    alias CarrierPigeon.Rooms.Accounts
 
     @valid_private_attrs %{
       type: :pm,
@@ -79,8 +80,35 @@ defmodule CarrierPigeon.RoomsTest do
       Profiles.create_profile(attrs)
     end
 
+    def user_fixture_a() do
+      attrs = %{
+        email: "some@email.com.br",
+        name: "Cleber de Oliveira",
+        password: "abc123!@#123",
+        username: "destroyer123"
+      }
+
+      {:ok, user} = Accounts.create_user(attrs)
+
+      user
+    end
+
+    def user_fixture_b() do
+      attrs = %{
+        email: "some.other@gmail.com",
+        name: "José dos Santos",
+        password: "0831#!G!13109",
+        username: "fallenAngel355"
+      }
+
+      {:ok, user} = Accounts.create_user(attrs)
+
+      user
+    end
+
     test "list_rooms/1 returns all chat rooms for a user" do
-      profile = profile_fixture_a()
+      %{user_id: user_id} = user_fixture_a()
+      profile = profile_fixture_a(user_id)
 
       %{ profile_id: profile_id } = profile
       rooms = list_rooms(profile_id)
@@ -100,6 +128,10 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "create_room/1 with valid data creates a private room" do
+      user_a = user_fixture_a()
+      user_b = user_fixture_b()
+      profile_a = profile_fixture_a(user_a.user_id)
+      profile_b = profile_fixture_b(user_b.user_id)
       payload = %{
         type: :pm,
         member_ids: [ profile_a.profile_id, profile_b.profile_id ],
@@ -112,8 +144,10 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "create_room!/1 with valid data creates a private room" do
-      profile_a = profile_fixture_a()
-      profile_b = profile_fixture_b()
+      user_a = user_fixture_a()
+      user_b = user_fixture_b()
+      profile_a = profile_fixture_a(user_a.user_id)
+      profile_b = profile_fixture_b(user_b.user_id)
 
       payload = %{
         type: :pm,
@@ -128,6 +162,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "update_room/2 with valid data creates a private room" do
+      user_a = user_fixture_a()
+      user_b = user_fixture_b()
+      profile_a = profile_fixture_a(user_a.user_id)
+      profile_b = profile_fixture_b(user_b.user_id)
+
       room = room_pm_fixture()
       %{ room_id: room_id } = room
 
@@ -144,6 +183,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "update_room!/2 with valid data creates a private room" do
+      user_a = user_fixture_a()
+      user_b = user_fixture_b()
+      profile_a = profile_fixture_a(user_a.user_id)
+      profile_b = profile_fixture_b(user_b.user_id)
+
       room = room_pm_fixture()
       %{ room_id: room_id } = room
 
@@ -181,7 +225,8 @@ defmodule CarrierPigeon.RoomsTest do
 
     test "is_user_in_room?/2 returns true if the user is a member of the chat room" do
       room = room_pm_fixture()
-      profile = profile_fixture_a()
+      user = user_fixture_a()
+      profile = profile_fixture_a(user.user_id)
       members = [ profile | room.members ]
       attrs = %{ members: members }
 
@@ -195,7 +240,8 @@ defmodule CarrierPigeon.RoomsTest do
 
     test "is_user_in_room?/2 returns false if the user is not a member of the chat room" do
       room = room_pm_fixture()
-      profile = profile_fixture_a()
+      user = user_fixture_a()
+      profile = profile_fixture_a(user.user_id)
 
       %{ room_id: room_id } = room
       %{ profile_id: profile_id } = profile
@@ -203,9 +249,10 @@ defmodule CarrierPigeon.RoomsTest do
       assert Rooms.is_user_in_room?(room_id, profile_id) == false
     end
 
-    test "insert_meessage/3 inserts a message in the room" do
+    test "insert_message/3 inserts a message in the room" do
       room = room_pm_fixture()
-      profile = profile_fixture_a()
+      user = user_fixture_a()
+      profile = profile_fixture_a(user.user_id)
       content = "Some test message"
 
       %{ room_id: room_id } = room

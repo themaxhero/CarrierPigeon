@@ -45,6 +45,13 @@ defmodule CarrierPigeon.Profiles.Profile do
     owner_id: String.t(),
   }
 
+  @type update_attrs :: %{
+    optional(:avatar) => String.t(),
+    optional(:nickname) => String.t(),
+    optional(:room_ids) => [String.t()],
+    optional(:owner_id) => String.t(),
+  }
+
   def validate_rooms(changeset, field) do
     validate_change(
       changeset,
