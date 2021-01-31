@@ -46,6 +46,7 @@ defmodule CarrierPigeon.Accounts.User do
     |> validate_required(@required_fields)
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_format(:email, @email_regexp)
+    |> unique_constraint(:email)
     |> validate_format(:name, @name_regexp)
     |> validate_format(:username, @username_regexp)
     |> put_password_hash
