@@ -73,6 +73,22 @@ defmodule CarrierPigeon.Rooms do
     |> Repo.update!
   end
 
+  @spec delete_room(String.t()) ::
+    { :ok, Room.t() }
+    | { :error, atom() }
+  def delete_room(room_id) do
+    %Room{}
+    |> Repo.get(room_id)
+    |> Repo.delete
+  end
+
+  @spec delete_room!(String.t()) :: Room.t()
+  def delete_room!(room_id) do
+    %Room{}
+    |> Repo.get(room_id)
+    |> Repo.delete!
+  end
+
   @spec is_user_in_room?(String.t(), String.t()) :: any()
   def is_user_in_room?(room_id, profile_id) do
     room_id

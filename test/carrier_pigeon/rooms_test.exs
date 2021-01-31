@@ -88,15 +88,15 @@ defmodule CarrierPigeon.RoomsTest do
       assert Enum.all?(rooms, &(profile in &1.members))
     end
 
-    test "get_room!/1 returns the room with given id" do
-      room = room_pm_fixture()
-      assert Rooms.get_room!(room.room_id) == room
-    end
-
     test "get_room/1 returns the room with given id" do
       old_room = room_pm_fixture()
       { :ok, room } Rooms.get_room(old_room.room_id)
       assert old_room == room
+    end
+
+    test "get_room!/1 returns the room with given id" do
+      room = room_pm_fixture()
+      assert Rooms.get_room!(room.room_id) == room
     end
 
     test "create_room/1 with valid data creates a private room" do
@@ -109,6 +109,74 @@ defmodule CarrierPigeon.RoomsTest do
       assert room.type == :pm
       assert profile_a in room.members
       assert profile_b in room.members
+    end
+
+    test "create_room!/1 with valid data creates a private room" do
+      profile_a = profile_fixture_a()
+      profile_b = profile_fixture_b()
+
+      payload = %{
+        type: :pm,
+        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
+      }
+
+      room = Rooms.create_room!(payload)
+
+      assert room.type == :pm
+      assert profile_a in room.members
+      assert profile_b in room.members
+    end
+
+    test "update_room/2 with valid data creates a private room" do
+      room = room_pm_fixture()
+      %{ room_id: room_id } = room
+
+      payload = %{
+        type: :pm,
+        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
+      }
+
+      {:ok, room} = Rooms.update_room(room_id, payload)
+
+      assert room.type == :pm
+      assert profile_a in room.members
+      assert profile_b in room.members
+    end
+
+    test "update_room!/2 with valid data creates a private room" do
+      room = room_pm_fixture()
+      %{ room_id: room_id } = room
+
+      payload = %{
+        type: :pm,
+        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
+      }
+
+      room = Rooms.update_room!(room_id, payload)
+
+      assert room.type == :pm
+      assert profile_a in room.members
+      assert profile_b in room.members
+    end
+
+    test "delete_room/1 with existing room deletes it." do
+      room = room_pm_fixture()
+
+      %{ room_id: room_id } = room
+
+      { :ok, room } = Rooms.delete_room(room_id)
+
+      assert Rooms.get_room!(room_id) == nil
+    end
+
+    test "delete_room!/1 with existing room deletes it." do
+      room = room_pm_fixture()
+
+      %{ room_id: room_id } = room
+
+      room = Rooms.delete_room!(room_id)
+
+      assert Rooms.get_room!(room_id) == nil
     end
 
     test "is_user_in_room?/2 returns true if the user is a member of the chat room" do
