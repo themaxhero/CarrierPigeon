@@ -69,5 +69,7 @@ defmodule CarrierPigeon.Profiles.Profile do
     |> validate_required(@required_fields)
     |> validate_rooms(:room_ids)
     |> validate_format(:owner_id, @uuid_regexp)
+    |> cast_assoc(:owner)
+    |> cast_assoc(:rooms)
   end
 end

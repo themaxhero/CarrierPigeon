@@ -17,8 +17,8 @@ defmodule CarrierPigeon.Rooms.Room do
     owner: User.t(),
   }
 
-  @casting_fields [:name, :type, :members, :owner]
-  @required_fields [:name, :type, :members, :owner]
+  @casting_fields [:name, :type, :member_ids, :owner_id ]
+  @required_fields [:name, :type, :member_ids ]
 
   schema "rooms" do
     field :name, :string
@@ -67,6 +67,9 @@ defmodule CarrierPigeon.Rooms.Room do
     |> validate_required(@required_fields)
     |> validate_format(:owner_id, @uuid_regexp)
     |> validate_members(:member_ids)
+    |> cast_assoc(:members)
+    |> cast_assoc(:owner)
+    |> cast_assoc(:messages)
   end
 
   defmodule Query do

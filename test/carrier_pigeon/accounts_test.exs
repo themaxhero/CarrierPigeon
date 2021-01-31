@@ -12,6 +12,7 @@ defmodule CarrierPigeon.AccountsTest do
       email: "some@email.com.br",
       name: "Cleber de Oliveira",
       password: @created_user_password,
+      password_confirmation: @created_user_password,
       username: "destroyer123"
     }
 
@@ -21,6 +22,7 @@ defmodule CarrierPigeon.AccountsTest do
       email: "some.other@gmail.com",
       name: "José dos Santos",
       password: @updated_user_password,
+      password_confirmation: @updated_user_password,
       username: "fallenAngel355"
     }
 
@@ -58,7 +60,7 @@ defmodule CarrierPigeon.AccountsTest do
 
 
     test "create_user/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Accounts.create_user(@invalid_attrs)
+      assert_raise FunctionClauseError, Accounts.create_user(@invalid_attrs)
     end
 
     test "update_user/2 with valid data updates the user" do
@@ -70,14 +72,14 @@ defmodule CarrierPigeon.AccountsTest do
 
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
-      assert {:error, %Ecto.Changeset{}} = Accounts.update_user(user, @invalid_attrs)
-      assert user == Accounts.get_user!(user.id)
+      assert_raise FunctionClauseError, Accounts.update_user(user, @invalid_attrs)
+      assert user == Accounts.get_user!(user.user_id)
     end
 
     test "delete_user/1 deletes the user" do
       user = user_fixture()
       assert {:ok, %User{}} = Accounts.delete_user(user)
-      assert_raise Ecto.NoResultsError, fn -> Accounts.get_user!(user.id) end
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_user!(user.user_id) end
     end
 
     test "change_user/1 returns a user changeset" do
@@ -88,7 +90,10 @@ defmodule CarrierPigeon.AccountsTest do
     test "authenticate_user/2 returns ok on correct data" do
       user = user_fixture()
       password = @created_user_password
-      assert { :ok, token } == Accounts.authenticate_user(user.email, password)
+
+      { :ok, token } = Accounts.authenticate_user(user.email, password)
+
+      assert is_binary(token)
     end
 
     test "authenticate_user/2 returns error on bad data" do

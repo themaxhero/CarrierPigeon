@@ -6,12 +6,12 @@ defmodule CarrierPigeon.Accounts.User do
 
   @primary_key { :user_id, :binary_id, autogenerate: true }
 
-  @casting_fields [:name, :username, :password, :password_confirmation, :email]
-  @required_fields [:name, :username, :password, :password_confirmation, :email]
+  @casting_fields [:name, :username, :password, :email]
+  @required_fields [:name, :username, :password, :email]
 
-  @email_regexp ~r/^[\w.+\-]+@((?!-)[A-Za-z0–9-]{1, 63}(?<!-)\.)+[A-Za-z]{2, 6}$/
+  @email_regexp ~r/@/
 
-  @name_regexp ~r/^\w{2,}$/
+  @name_regexp ~r/.+\s.+/
 
   @username_regexp ~r/^[A-Za-z0-9_\-\.]{4,32}$/
 
@@ -44,7 +44,7 @@ defmodule CarrierPigeon.Accounts.User do
     user
     |> cast(attrs, @casting_fields)
     |> validate_required(@required_fields)
-    |> validate_confirmation(:password, message: "does not match password")
+    |> validate_confirmation(:password, message: "passwords does not match")
     |> validate_format(:email, @email_regexp)
     |> unique_constraint(:email)
     |> validate_format(:name, @name_regexp)
