@@ -4,7 +4,7 @@ defmodule CarrierPigeon.Rooms do
   alias CarrierPigeon.Rooms.Message, as: Message
 
   @spec list_rooms(String.t()) :: [Room.t()]
-  def list_rooms(profile_id) do
+  def list_rooms(profile_id) when is_binary(profile_id) do
     profile_id
     |> Room.Query.all_rooms_for
     |> Repo.all
@@ -73,20 +73,24 @@ defmodule CarrierPigeon.Rooms do
     |> Repo.update!
   end
 
-  @spec delete_room(String.t()) ::
+  @spec delete_room(String.t() | Room.t()) ::
     { :ok, Room.t() }
     | { :error, atom() }
-  def delete_room(room_id) do
-    %Room{}
-    |> Repo.get(room_id)
-    |> Repo.delete
+  def delete_room(%Room{} = room),
+    do: Repo.delete(room)
+  def delete_room(room_id) when is_binary(room_id) do
+    room_id
+    |> get_room!
+    |> delete_room
   end
 
-  @spec delete_room!(String.t()) :: Room.t()
-  def delete_room!(room_id) do
-    %Room{}
-    |> Repo.get(room_id)
-    |> Repo.delete!
+  @spec delete_room!(String.t() | Room.t()) :: Room.t()
+  def delete_room!(%Room{} = room),
+    do: Repo.delete!(room)
+  def delete_room!(room_id) when is_binary(room_id) do
+    room_id
+    |> get_room!
+    |> delete_room!
   end
 
   @spec is_user_in_room?(String.t(), String.t()) :: any()
