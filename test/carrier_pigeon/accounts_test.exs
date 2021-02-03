@@ -6,7 +6,7 @@ defmodule CarrierPigeon.AccountsTest do
   describe "users" do
     alias CarrierPigeon.Accounts.User
 
-    @created_user_password "abc"
+    @created_user_password "abc123"
 
     @valid_attrs %{
       email: "some@email.com.br",
@@ -16,7 +16,7 @@ defmodule CarrierPigeon.AccountsTest do
       username: "destroyer123"
     }
 
-    @updated_user_password "def"
+    @updated_user_password "def123"
 
     @update_attrs %{
       email: "some.other@gmail.com",
@@ -27,10 +27,7 @@ defmodule CarrierPigeon.AccountsTest do
     }
 
     @invalid_attrs %{
-      email: nil,
-      name: nil,
-      password: nil,
-      username: nil
+      email: "123"
     }
 
     def user_fixture() do
@@ -57,7 +54,8 @@ defmodule CarrierPigeon.AccountsTest do
 
 
     test "create_user/1 with invalid data returns error changeset" do
-      assert { :error, %Ecto.Changeset{valid?: false} } == Accounts.create_user(@invalid_attrs)
+      { :error, changeset } = Accounts.create_user(@invalid_attrs)
+      assert changeset.valid? == false
     end
 
     test "update_user/2 with valid data updates the user" do
@@ -69,7 +67,8 @@ defmodule CarrierPigeon.AccountsTest do
 
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
-      assert {:error, %Ecto.Changeset{valid?: false}} == Accounts.update_user(user, @invalid_attrs)
+      {:error, changeset} = Accounts.update_user(user, @invalid_attrs)
+      assert changeset.valid? == false
       assert user == Accounts.get_user!(user.user_id)
     end
 

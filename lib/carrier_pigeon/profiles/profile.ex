@@ -4,6 +4,7 @@ defmodule CarrierPigeon.Profiles.Profile do
 
   alias CarrierPigeon.Accounts.User, as: User
   alias CarrierPigeon.Rooms.Room, as: Room
+  alias CarrierPigeon.Rooms.RoomMember
 
   @primary_key { :profile_id, :binary_id, autogenerate: true }
 
@@ -62,8 +63,8 @@ defmodule CarrierPigeon.Profiles.Profile do
     )
   end
 
-  @spec changeset(%__MODULE__{} | changeset, creation_attrs) :: changeset
-  def changeset(%__MODULE__{} = profile, attrs \\ %{}) do
+  @spec changeset(t(), creation_attrs) :: changeset
+  def changeset(%__MODULE__{} = profile, attrs) do
     profile
     |> cast(attrs, @casting_fields)
     |> validate_required(@required_fields)

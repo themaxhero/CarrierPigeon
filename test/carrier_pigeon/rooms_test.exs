@@ -40,26 +40,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     def update_group_attrs do
-      user_gp1 = user_fixture_group_1()
-      user_gp2 = user_fixture_group_2()
-      profile_group_1 = profile_room_group_fixture(user_gp1.user_id)
-      profile_group_2 = profile_room_group_fixture(user_gp2.user_id)
-      members = [
-        profile_group_1,
-        profile_group_2
-      ]
-
-      payload = %{
-        type: :group,
-      }
-
-      payload
+      %{ type: :group }
     end
 
     def room_pm_fixture(profile, members, attrs \\ %{}) do
-      attrs =
-        attrs
-        |> Enum.into(@valid_private_attrs)
+      attrs = Enum.into(attrs, @valid_private_attrs)
 
       {:ok, room} = Rooms.create_room(profile, members, attrs)
 
@@ -67,9 +52,7 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     def room_gp_fixture(profile, members, attrs \\ %{}) do
-      attrs =
-        attrs
-        |> Enum.into(@valid_private_attrs)
+      attrs = Enum.into(attrs, @valid_private_attrs)
 
       {:ok, room} = Rooms.create_room(profile, members, attrs)
 
@@ -205,93 +188,115 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "get_room/1 returns the room with given id" do
-      old_room = room_pm_fixture()
+      %{user_id: user_id} = user_fixture_a()
+      %{user_id: user_id2} = user_fixture_b()
+      profile = profile_fixture_a(user_id)
+      profile2 = profile_fixture_b(user_id2)
+
+      members = [ profile, profile2 ]
+
+      old_room = room_pm_fixture(profile, members)
+
       { :ok, room } = Rooms.get_room(old_room.room_id)
       assert old_room == room
     end
 
     test "get_room!/1 returns the room with given id" do
-      room = room_pm_fixture()
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+      room = room_pm_fixture(profile, [ profile, profile2 ])
       assert Rooms.get_room!(room.room_id) == room
     end
 
     test "create_room/1 with valid data creates a private room" do
-      user_a = user_fixture_a()
-      user_b = user_fixture_b()
-      profile_a = profile_fixture_a(user_a.user_id)
-      profile_b = profile_fixture_b(user_b.user_id)
-      payload = %{
-        type: :pm,
-        members: [ profile_a, profile_b ],
-      }
-      {:ok, room} = Rooms.create_room(payload)
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+
+      payload = %{ type: :pm }
+
+      members = [ profile, profile2 ]
+
+      {:ok, room} = Rooms.create_room(profile, members, payload)
 
       assert room.type == :pm
-      assert profile_a in room.members
-      assert profile_b in room.members
+      assert profile in room.members
+      assert profile2 in room.members
     end
 
     test "create_room!/1 with valid data creates a private room" do
-      user_a = user_fixture_a()
-      user_b = user_fixture_b()
-      profile_a = profile_fixture_a(user_a.user_id)
-      profile_b = profile_fixture_b(user_b.user_id)
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
 
       payload = %{
         type: :pm,
       }
 
-      room = Rooms.create_room!(profile_a, payload)
+      members = [ profile, profile2 ]
+
+      room = Rooms.create_room!(profile, members, payload)
 
       assert room.type == :pm
-      assert profile_a in room.members
-      assert profile_b in room.members
+      assert profile in room.members
+      assert profile2 in room.members
     end
 
     test "update_room/2 with valid data creates a private room" do
-      user_a = user_fixture_a()
-      user_b = user_fixture_b()
-      profile_a = profile_fixture_a(user_a.user_id)
-      profile_b = profile_fixture_b(user_b.user_id)
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
 
-      room = room_pm_fixture()
+      room = room_pm_fixture(profile, [ profile, profile2 ])
+
       %{ room_id: room_id } = room
 
       payload = %{
         type: :pm,
-        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
       }
 
       {:ok, room} = Rooms.update_room(room_id, payload)
 
       assert room.type == :pm
-      assert profile_a in room.members
-      assert profile_b in room.members
+      assert profile in room.members
+      assert profile2 in room.members
     end
 
     test "update_room!/2 with valid data creates a private room" do
-      user_a = user_fixture_a()
-      user_b = user_fixture_b()
-      profile_a = profile_fixture_a(user_a.user_id)
-      profile_b = profile_fixture_b(user_b.user_id)
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
 
-      room = room_pm_fixture()
+      room = room_pm_fixture(profile, [ profile, profile2 ])
+
       %{ room_id: room_id } = room
 
       payload = %{
         type: :pm,
-        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
       }
 
-      room = Rooms.update_room!(room_id, payload)
+      members = [ profile, profile2 ]
+
+      room = Rooms.update_room!(room_id, members, payload)
 
       assert room.type == :pm
-      assert profile_a in room.members
-      assert profile_b in room.members
+      assert profile in room.members
+      assert profile2 in room.members
     end
 
     test "delete_room/1 with existing room deletes it." do
-      room = room_pm_fixture()
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+
+      room = room_pm_fixture(profile, [ profile, profile2 ])
 
       %{ room_id: room_id } = room
 
@@ -301,7 +306,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "delete_room!/1 with existing room deletes it." do
-      room = room_pm_fixture()
+      user = user_fixture_a()
+      user2 = user_fixture_b()
+      profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+      room = room_pm_fixture(profile, [ profile, profile2 ])
 
       %{ room_id: room_id } = room
 
@@ -311,9 +320,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "is_user_in_room?/2 returns true if the user is a member of the chat room" do
-      room = room_pm_fixture()
       user = user_fixture_a()
+      user2 = user_fixture_b()
       profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+      room = room_pm_fixture(profile, [ profile, profile2 ])
       members = [ profile | room.members ]
       attrs = %{ members: members }
 
@@ -326,9 +337,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "is_user_in_room?/2 returns false if the user is not a member of the chat room" do
-      room = room_pm_fixture()
       user = user_fixture_a()
+      user2 = user_fixture_b()
       profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+      room = room_pm_fixture(profile, [ profile, profile2 ])
 
       %{ room_id: room_id } = room
       %{ profile_id: profile_id } = profile
@@ -337,9 +350,11 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     test "insert_message/3 inserts a message in the room" do
-      room = room_pm_fixture()
       user = user_fixture_a()
+      user2 = user_fixture_b()
       profile = profile_fixture_a(user.user_id)
+      profile2 = profile_fixture_b(user2.user_id)
+      room = room_pm_fixture(profile, [ profile, profile2 ])
       content = "Some test message"
 
       %{ room_id: room_id } = room

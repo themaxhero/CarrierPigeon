@@ -19,7 +19,7 @@ config :carrier_pigeon, CarrierPigeonWeb.Endpoint,
   live_view: [signing_salt: "2tK3WdTg"]
 
 
-config :carrier_pigeon, CarrierPigeon.Accounts.Guardian,
+config :carrier_pigeon, CarrierPigeon.Guardian,
   issuer: "carrier_pigeon",
   secret_key: "My6Po0wL0CKU25aKsWyJcIlr8MkImGfgzr3u2ZotV"
 

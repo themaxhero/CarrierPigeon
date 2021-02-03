@@ -15,7 +15,12 @@ defmodule CarrierPigeon.Profiles do
       |> Profile.changeset(attrs)
       |> Repo.insert
 
-    { :ok, Repo.preload(profile, :user) }
+    profile =
+      profile
+      |> Repo.preload(:user)
+      |> Repo.preload(:rooms)
+
+    { :ok, profile }
   end
 
   @spec create_profile!(User.t(), create_profile_params) :: Profile.t()
@@ -25,6 +30,7 @@ defmodule CarrierPigeon.Profiles do
     |> Profile.changeset(attrs)
     |> Repo.insert!
     |> Repo.preload(:user)
+    |> Repo.preload(:rooms)
   end
 
   @type update_profile_params :: Profile.update_attrs
@@ -71,16 +77,18 @@ defmodule CarrierPigeon.Profiles do
   @spec get_profile(String.t()) ::
     { :ok, Profile.t() }
     | { :error, atom() }
-  def get_profile(profile_id) do
-    profile =
-      Profile
-      |> Repo.get(profile_id)
-      |> Repo.preload(:user)
-      |> Repo.preload(:rooms)
+  def get_profile(profile_id) when is_binary(profile_id) do
+    case Repo.get(Profile, profile_id) do
+      { :ok, %Profile{} = profile } ->
+        profile =
+          profile
+          |> Repo.preload(:user)
+          |> Repo.preload(:rooms)
 
-    case profile do
-      nil -> { :error, :internal }
-      profile -> { :ok, profile }
+        { :ok, profile }
+
+      nil ->
+        { :error, :internal }
     end
   end
 
