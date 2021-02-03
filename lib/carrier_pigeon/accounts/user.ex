@@ -2,6 +2,8 @@ defmodule CarrierPigeon.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias CarrierPigeon.Profiles.Profile
+
   alias Argon2
 
   @primary_key { :user_id, :binary_id, autogenerate: true }
@@ -20,6 +22,8 @@ defmodule CarrierPigeon.Accounts.User do
     field :name, :string
     field :password, :string
     field :username, :string
+    has_many :profiles, Profile,
+      foreign_key: :user_id
 
     timestamps()
   end

@@ -5,6 +5,7 @@ defmodule CarrierPigeon.Rooms.Room do
   alias CarrierPigeon.Accounts.User, as: User
   alias CarrierPigeon.Profiles.Profile, as: Profile
   alias CarrierPigeon.Rooms.Message, as: Message
+  alias CarrierPigeon.Rooms.RoomMember
 
   @primary_key { :room_id, :binary_id, autogenerate: true }
 
@@ -17,15 +18,16 @@ defmodule CarrierPigeon.Rooms.Room do
     owner: User.t(),
   }
 
-  @casting_fields [:name, :type, :member_ids, :owner_id ]
-  @required_fields [:name, :type, :member_ids ]
+  @casting_fields [ :name, :type ]
+  @required_fields [ :type ]
 
   schema "rooms" do
     field :name, :string
     field :type, Ecto.Enum, values: [:pm, :group]
 
-    has_many :members, Profile,
-      foreign_key: :profile_id
+    many_to_many :members, Profile,
+      join_through: RoomMember,
+      join_keys: [ room_id: :room_id, profile_id: :profile_id ]
 
     belongs_to :owner, Profile,
       foreign_key: :profile_id,
@@ -45,9 +47,9 @@ defmodule CarrierPigeon.Rooms.Room do
 
   @type creation_attrs :: %{
     optional(:name) => String.t(),
-    optional(:owner_id) => String.t(),
+    optional(:owner) => Profile.t(),
+    optional(:members) => [Profile.t()],
     type: :pm | :group,
-    member_ids: [String.t()],
   }
 
   def validate_members(changeset, field) do
@@ -65,8 +67,6 @@ defmodule CarrierPigeon.Rooms.Room do
     room
     |> cast(attrs, @casting_fields)
     |> validate_required(@required_fields)
-    |> validate_format(:owner_id, @uuid_regexp)
-    |> validate_members(:member_ids)
     |> cast_assoc(:members)
     |> cast_assoc(:owner)
     |> cast_assoc(:messages)

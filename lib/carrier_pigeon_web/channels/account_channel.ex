@@ -1,13 +1,14 @@
 defmodule CarrierPigeonWeb.AccountChannel do
   use CarrierPigeonWeb, :channel
 
+  alias CarrierPigeon.Accounts
   alias CarrierPigeon.Profiles
   alias CarrierPigeon.Rooms
 
   # Helpers
-  @spec create_and_broadcast_room(Rooms.create_room_params, Phoenix.Socket.t()) :: any()
-  defp create_and_broadcast_room(payload, socket) do
-    case Rooms.create_room(payload) do
+  @spec create_and_broadcast_room(Profiles.Profile.t(), [Profiles.Profile.t()], Rooms.create_room_params, Phoenix.Socket.t()) :: any()
+  defp create_and_broadcast_room(profile, members, payload, socket) do
+    case Rooms.create_room(profile, members, payload) do
       { :ok, room } ->
         push socket, "room_creation_success", room
         broadcast socket, "included_in_room", room
@@ -16,14 +17,14 @@ defmodule CarrierPigeonWeb.AccountChannel do
     end
   end
 
-  @spec create_and_send_profile(Profiles.create_profile_params, Phoenix.Socket.t()) :: any()
-  defp create_and_send_profile(payload, socket) do
-    case Profiles.create_profile(payload) do
+  @spec create_and_send_profile(Accounts.User.t(), Profiles.create_profile_params, Phoenix.Socket.t()) :: any()
+  defp create_and_send_profile(user, payload, socket) do
+    case Profiles.create_profile(user, payload) do
       { :ok, profile } ->
         push socket, "profile_creation_successful", profile
 
-      { :error, reason } ->
-        push socket, "profile_creation_failed", %{ reason: reason }
+      { :error, _reason } ->
+        push socket, "profile_creation_failed", %{ reason: "profile_creation_failed" }
     end
   end
 
@@ -49,42 +50,54 @@ defmodule CarrierPigeonWeb.AccountChannel do
     { :reply, atom() | {atom(), map()}, Phoenix.Socket.t() }
     | { :noreply, Phoenix.Socket.t() }
   def handle_in("create.profile", %{nickname: nickname, avatar: avatar}, socket) do
+    user = Accounts.get_user!(socket.assigns[:user_id])
     payload = %{
       nickname: nickname,
       avatar: avatar,
-      room_ids: [],
-      owner_id: socket.assigns[:user_id],
+      owner: user,
     }
 
-    create_and_send_profile(payload, socket)
+    create_and_send_profile(user, payload, socket)
 
     { :noreply, socket }
   end
   def handle_in("create.room", %{ type: :pm, pair: pair_id }, socket) when is_binary(pair_id) do
     profile_id = socket.assigns[:profile_id]
-    member_ids = [ profile_id, pair_id ]
+
+    { :ok, profile_user } = Profiles.get_profile(profile_id)
+    { :ok, profile_pair } = Profiles.get_profile(pair_id)
+
+    members = [ profile_user, profile_pair ]
+
     payload = %{
-      type: :pm,
-      member_ids: member_ids,
+      type: :pm
     }
 
-    create_and_broadcast_room(payload, socket)
+    create_and_broadcast_room(profile_user, members, payload, socket)
 
     { :noreply, socket }
   end
-  def handle_in("create.room", %{ type: :group, name: name, member_ids: member_ids}, socket)
+  def handle_in(
+    "create.room",
+    %{ type: :group, name: name, member_ids: member_ids},
+    %Phoenix.Socket{ assigns: %{ profile_id: profile_id, joined: true } } = socket
+  )
     when is_binary(name)
+    and is_binary(profile_id)
     and is_list(member_ids)
   do
-    profile_id = socket.assigns[:profile_id]
+    member_ids = List.insert_at(member_ids, 0, profile_id)
+    members = Enum.map(member_ids, &Profiles.get_profile!/1)
+    profile = Profiles.get_profile!(profile_id)
+
     payload = %{
       type: :group,
       name: name,
-      owner_id: profile_id,
-      member_ids: [ profile_id | member_ids],
+      owner: profile,
+      members: members,
     }
 
-    create_and_broadcast_room(payload, socket)
+    create_and_broadcast_room(profile, members, payload, socket)
 
     { :noreply, socket }
   end

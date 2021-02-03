@@ -1,5 +1,6 @@
 defmodule CarrierPigeon.Rooms do
   alias CarrierPigeon.Repo, as: Repo
+  alias CarrierPigeon.Profiles.Profile, as: Profile
   alias CarrierPigeon.Rooms.Room, as: Room
   alias CarrierPigeon.Rooms.Message, as: Message
 
@@ -13,13 +14,13 @@ defmodule CarrierPigeon.Rooms do
   @spec get_room(String.t()) ::
     { :ok, Room.t() }
     | { :error, %{ reason: String.t() } }
-  def get_room(room_id) do
+  def get_room(room_id) when is_binary(room_id) do
     room =
-      %Room{}
+      Room
       |> Repo.get(room_id)
-      |> Ecto.assoc(:messages)
-      |> Ecto.assoc(:members)
-      |> Repo.one
+      |> Repo.preload(:messages)
+      |> Repo.preload(:members)
+      |> Repo.preload(:owner)
 
     if room do
       { :ok, room }
@@ -30,27 +31,34 @@ defmodule CarrierPigeon.Rooms do
 
   @spec get_room!(String.t()) :: Room.t()
   def get_room!(room_id) do
-    %Room{}
-    |> Repo.get(room_id)
-    |> Ecto.assoc(:messages)
-    |> Ecto.assoc(:members)
-    |> Repo.one
+    Room
+    |> Repo.get!(room_id)
+    |> Repo.preload(:messages)
+    |> Repo.preload(:members)
   end
 
   @type create_room_params :: Room.creation_params
-  @spec create_room(create_room_params) ::
+  @spec create_room_helper(Profile.t(), [Profile.t()], create_room_params) :: Room.changeset
+  defp create_room_helper(%Profile{} = profile, members, attrs) when is_list(members) do
+    attrs
+    |> Room.changeset
+    |> Ecto.Changeset.put_assoc(:members, members)
+    |> Ecto.Changeset.put_assoc(:owner, profile)
+  end
+
+  @spec create_room(Profile.t(), [Profile.t()], create_room_params) ::
     { :ok, Room.t() }
     | { :error, %{ reason: String.t() }}
-  def create_room(attrs) do
-    %Room{}
-    |> Room.changeset(attrs)
+  def create_room(%Profile{} = profile, members, attrs) when is_list(members) do
+    profile
+    |> create_room_helper(members, attrs)
     |> Repo.insert
   end
 
-  @spec create_room!(create_room_params) :: Room.t()
-  def create_room!(attrs) do
-    %Room{}
-    |> Room.changeset(attrs)
+  @spec create_room!(Profile.t(), [Profile.t()], create_room_params) :: Room.t()
+  def create_room!(%Profile{} = profile, members, attrs) when is_list(members) do
+    profile
+    |> create_room_helper(members, attrs)
     |> Repo.insert!
   end
 

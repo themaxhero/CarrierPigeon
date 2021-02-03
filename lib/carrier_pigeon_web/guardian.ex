@@ -4,7 +4,7 @@ defmodule CarrierPigeon.Guardian do
   alias CarrierPigeon.Accounts
 
   def subject_for_token(user, _claims) do
-    {:ok, to_string(user.id)}
+    {:ok, to_string(user.user_id)}
   end
 
   def resource_from_claims(%{sub: id}) do

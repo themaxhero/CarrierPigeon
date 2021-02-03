@@ -29,9 +29,9 @@ defmodule CarrierPigeon.Repo.Migrations.CreateUsers do
         primary_key: true
 
       add :nickname, :string, null: false
-      add :avatar, :string, null: false
+      add :avatar, :string
 
-      add :owner_id,
+      add :user_id,
         references(:users, column: :user_id, type: :uuid),
         null: false
 
@@ -44,8 +44,10 @@ defmodule CarrierPigeon.Repo.Migrations.CreateUsers do
       add :room_id, :uuid,
         primary_key: true
 
-      add :name, :string
-      add :photo, :string
+      add :name, :string,
+        null: true
+      add :photo, :string,
+        null: true
 
       add :type, :room_type,
         null: false

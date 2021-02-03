@@ -33,11 +33,8 @@ defmodule CarrierPigeon.AccountsTest do
       username: nil
     }
 
-    def user_fixture(attrs \\ %{}) do
-      {:ok, user} =
-        attrs
-        |> Enum.into(@valid_attrs)
-        |> Accounts.create_user
+    def user_fixture() do
+      {:ok, user} = Accounts.create_user(@valid_attrs)
 
       user
     end
@@ -60,7 +57,7 @@ defmodule CarrierPigeon.AccountsTest do
 
 
     test "create_user/1 with invalid data returns error changeset" do
-      assert_raise FunctionClauseError, Accounts.create_user(@invalid_attrs)
+      assert { :error, %Ecto.Changeset{valid?: false} } == Accounts.create_user(@invalid_attrs)
     end
 
     test "update_user/2 with valid data updates the user" do
@@ -72,7 +69,7 @@ defmodule CarrierPigeon.AccountsTest do
 
     test "update_user/2 with invalid data returns error changeset" do
       user = user_fixture()
-      assert_raise FunctionClauseError, Accounts.update_user(user, @invalid_attrs)
+      assert {:error, %Ecto.Changeset{valid?: false}} == Accounts.update_user(user, @invalid_attrs)
       assert user == Accounts.get_user!(user.user_id)
     end
 

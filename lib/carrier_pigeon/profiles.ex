@@ -1,23 +1,30 @@
 defmodule CarrierPigeon.Profiles do
   alias CarrierPigeon.Repo
+  alias CarrierPigeon.Accounts.User
   alias CarrierPigeon.Profiles.Profile
 
   @type create_profile_params :: Profile.creation_attrs()
 
-  @spec create_profile(create_profile_params) ::
+  @spec create_profile(User.t(), create_profile_params) ::
     { :ok, Profile.t() }
     | { :error, atom() }
-  def create_profile(attrs) do
-    %Profile{}
-    |> Profile.changeset(attrs)
-    |> Repo.insert
+  def create_profile(%User{} = user, attrs) do
+    { :ok, profile } =
+      user
+      |> Ecto.build_assoc(:profiles)
+      |> Profile.changeset(attrs)
+      |> Repo.insert
+
+    { :ok, Repo.preload(profile, :user) }
   end
 
-  @spec create_profile!(create_profile_params) :: Profile.t()
-  def create_profile!(attrs) do
-    %Profile{}
+  @spec create_profile!(User.t(), create_profile_params) :: Profile.t()
+  def create_profile!(%User{} = user, attrs) do
+    user
+    |> Ecto.build_assoc(:profiles)
     |> Profile.changeset(attrs)
     |> Repo.insert!
+    |> Repo.preload(:user)
   end
 
   @type update_profile_params :: Profile.update_attrs
@@ -64,10 +71,24 @@ defmodule CarrierPigeon.Profiles do
   @spec get_profile(String.t()) ::
     { :ok, Profile.t() }
     | { :error, atom() }
-  def get_profile(profile_id),
-    do: Repo.get(Profile, profile_id)
+  def get_profile(profile_id) do
+    profile =
+      Profile
+      |> Repo.get(profile_id)
+      |> Repo.preload(:user)
+      |> Repo.preload(:rooms)
+
+    case profile do
+      nil -> { :error, :internal }
+      profile -> { :ok, profile }
+    end
+  end
 
   @spec get_profile!(String.t()) :: Profile.t()
-  def get_profile!(profile_id),
-    do: Repo.get!(Profile, profile_id)
+  def get_profile!(profile_id) do
+    Profile
+    |> Repo.get!(profile_id)
+    |> Repo.preload(:user)
+    |> Repo.preload(:rooms)
+  end
 end

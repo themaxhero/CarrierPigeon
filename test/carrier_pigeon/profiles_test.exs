@@ -8,12 +8,10 @@ defmodule CarrierPigeon.ProfilesTest do
 
     @profile_a_attrs %{
       nickname: "GreatSword",
-      room_ids: []
     }
 
     @profile_b_attrs %{
       nickname: "MaSaMuNe",
-      room_ids: []
     }
 
     def user_fixture_a() do
@@ -46,14 +44,14 @@ defmodule CarrierPigeon.ProfilesTest do
 
     def profile_fixture_a(user_id) do
       attrs = @profile_a_attrs
-      attrs = Map.merge(attrs, %{owner_id: user_id})
-      Profiles.create_profile(attrs)
+      user = Accounts.get_user!(user_id)
+      Profiles.create_profile(user, attrs)
     end
 
     def profile_fixture_b(user_id) do
       attrs = @profile_b_attrs
-      attrs = Map.merge(attrs, %{owner_id: user_id})
-      Profiles.create_profile(attrs)
+      user = Accounts.get_user!(user_id)
+      Profiles.create_profile(user, attrs)
     end
 
     test "get_profile/1 with valid data creates a profile" do
@@ -76,23 +74,19 @@ defmodule CarrierPigeon.ProfilesTest do
 
     test "create_profile/1 with valid data creates a profile" do
       user = user_fixture_a()
-      attrs = @profile_a_attrs
-      attrs = Map.merge(attrs, %{owner_id: user.user_id})
-      { :ok, profile } = Profiles.create_profile(attrs)
+      { :ok, profile } = Profiles.create_profile(user, @profile_a_attrs)
 
-      assert profile.nickname == attrs.nickname
-      assert profile.user.user_id == attrs.user_id
+      assert profile.nickname == @profile_a_attrs.nickname
+      assert profile.user.user_id == user.user_id
     end
 
     test "create_profile!/1 with valid data creates a profile" do
       user = user_fixture_a()
-      attrs = @profile_a_attrs
-      attrs = Map.merge(attrs, %{owner_id: user.user_id})
-      profile = Profiles.create_profile!(attrs)
+      profile = Profiles.create_profile!(user, @profile_a_attrs)
 
       assert profile != nil
-      assert profile.nickname == attrs.nickname
-      assert profile.user.user_id == attrs.user_id
+      assert profile.nickname == @profile_a_attrs.nickname
+      assert profile.user.user_id == user.user_id
     end
 
     test "update_profiles/2 with valid data updates given profile" do

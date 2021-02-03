@@ -9,7 +9,6 @@ defmodule CarrierPigeon.RoomsTest do
 
     @valid_private_attrs %{
       type: :pm,
-      member_ids: [],
     }
 
     # @update_private_attrs %{
@@ -33,9 +32,8 @@ defmodule CarrierPigeon.RoomsTest do
 
       payload = %{
         name: "Some test room",
-        owner_id: profile_room_owner.profile_id,
+        owner: profile_room_owner,
         type: :group,
-        member_ids: [],
       }
 
       payload
@@ -46,41 +44,43 @@ defmodule CarrierPigeon.RoomsTest do
       user_gp2 = user_fixture_group_2()
       profile_group_1 = profile_room_group_fixture(user_gp1.user_id)
       profile_group_2 = profile_room_group_fixture(user_gp2.user_id)
+      members = [
+        profile_group_1,
+        profile_group_2
+      ]
 
       payload = %{
         type: :group,
-        member_ids: [
-          profile_group_1.profile_id,
-          profile_group_2.profile_id
-        ],
       }
 
       payload
     end
 
-    def room_pm_fixture(attrs \\ %{}) do
-      {:ok, room} =
+    def room_pm_fixture(profile, members, attrs \\ %{}) do
+      attrs =
         attrs
         |> Enum.into(@valid_private_attrs)
-        |> Rooms.create_room
+
+      {:ok, room} = Rooms.create_room(profile, members, attrs)
 
       room
     end
 
-    def room_gp_fixture(attrs \\ %{}) do
-      {:ok, room} =
+    def room_gp_fixture(profile, members, attrs \\ %{}) do
+      attrs =
         attrs
-        |> Enum.into(valid_group_attrs())
-        |> Rooms.create_room
+        |> Enum.into(@valid_private_attrs)
+
+      {:ok, room} = Rooms.create_room(profile, members, attrs)
 
       room
     end
 
     def profile_fixture_a(user_id) do
+      user = Accounts.get_user!(user_id)
       attrs = %{
         nickname: "GreatSword",
-        room_ids: [],
-        owner_id: user_id
+        owner: user
       }
 
       { :ok, profile } = Profiles.create_profile(attrs)
@@ -89,10 +89,10 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     def profile_fixture_b(user_id) do
+      user = Accounts.get_user!(user_id)
       attrs = %{
         nickname: "MaSaMuNe",
-        room_ids: [],
-        owner_id: user_id
+        owner: user
       }
 
       { :ok, profile } = Profiles.create_profile(attrs)
@@ -101,10 +101,10 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     def profile_room_owner_fixture(user_id) do
+      user = Accounts.get_user!(user_id)
       attrs = %{
         nickname: "GreatSword",
-        room_ids: [],
-        owner_id: user_id
+        owner: user
       }
 
       { :ok, profile } = Profiles.create_profile(attrs)
@@ -113,10 +113,10 @@ defmodule CarrierPigeon.RoomsTest do
     end
 
     def profile_room_group_fixture(user_id) do
+      user = Accounts.get_user!(user_id)
       attrs = %{
         nickname: "Angra",
-        room_ids: [],
-        owner_id: user_id
+        owner: user
       }
 
       { :ok, profile } = Profiles.create_profile(attrs)
@@ -222,7 +222,7 @@ defmodule CarrierPigeon.RoomsTest do
       profile_b = profile_fixture_b(user_b.user_id)
       payload = %{
         type: :pm,
-        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
+        members: [ profile_a, profile_b ],
       }
       {:ok, room} = Rooms.create_room(payload)
 
@@ -239,10 +239,9 @@ defmodule CarrierPigeon.RoomsTest do
 
       payload = %{
         type: :pm,
-        member_ids: [ profile_a.profile_id, profile_b.profile_id ],
       }
 
-      room = Rooms.create_room!(payload)
+      room = Rooms.create_room!(profile_a, payload)
 
       assert room.type == :pm
       assert profile_a in room.members

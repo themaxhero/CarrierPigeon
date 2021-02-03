@@ -9,25 +9,27 @@ defmodule CarrierPigeon.Profiles.Profile do
 
   @uuid_regexp ~r/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-  @casting_fields [:nickname, :avatar, :room_id, :sender_id]
-  @required_fields [:nickname, :room_id, :sender_id]
+  @casting_fields [ :nickname, :avatar ]
+  @required_fields [ :nickname ]
 
   @type t :: %__MODULE__{
     nickname: String.t(),
     avatar: String.t() | nil,
     rooms: [Room.t()],
-    owner: User.t(),
+    user: User.t(),
   }
 
   schema "profiles" do
     field :nickname, :string
-    field :avatar, :string
+    field :avatar, :string,
+      null: true
 
-    has_many :rooms, Room,
-      foreign_key: :room_id
+    many_to_many :rooms, Room,
+      join_through: RoomMember,
+      join_keys: [ profile_id: :profile_id, room_id: :room_id ]
 
-    belongs_to :owner, User,
-      foreign_key: :owner_id,
+    belongs_to :user, User,
+      foreign_key: :user_id,
       references: :user_id,
       type: :binary_id
 
@@ -41,15 +43,13 @@ defmodule CarrierPigeon.Profiles.Profile do
   @type creation_attrs :: %{
     optional(:avatar) => String.t(),
     nickname: String.t(),
-    room_ids: [String.t()],
-    owner_id: String.t(),
+    user: User.t(),
   }
 
   @type update_attrs :: %{
     optional(:avatar) => String.t(),
     optional(:nickname) => String.t(),
-    optional(:room_ids) => [String.t()],
-    optional(:owner_id) => String.t(),
+    optional(:user) => User.t(),
   }
 
   def validate_rooms(changeset, field) do
@@ -63,13 +63,9 @@ defmodule CarrierPigeon.Profiles.Profile do
   end
 
   @spec changeset(%__MODULE__{} | changeset, creation_attrs) :: changeset
-  def changeset(user, attrs) do
-    user
+  def changeset(%__MODULE__{} = profile, attrs \\ %{}) do
+    profile
     |> cast(attrs, @casting_fields)
     |> validate_required(@required_fields)
-    |> validate_rooms(:room_ids)
-    |> validate_format(:owner_id, @uuid_regexp)
-    |> cast_assoc(:owner)
-    |> cast_assoc(:rooms)
   end
 end
