@@ -1,4 +1,5 @@
 # CarrierPigeon
+[![themaxhero](https://circleci.com/gh/themaxhero/CarrierPigeon.svg?style=svg)](https://circleci.com/gh/themaxhero/CarrierPigeon)
 
 To start your Phoenix server:
 
