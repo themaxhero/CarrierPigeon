@@ -6,7 +6,7 @@ use Mix.Config
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :carrier_pigeon, CarrierPigeon.Repo,
-  username: "maxhero",
+  username: "postgres",
   password: "",
   database: "carrier_pigeon_test#{System.get_env("MIX_TEST_PARTITION")}",
   hostname: "localhost",
