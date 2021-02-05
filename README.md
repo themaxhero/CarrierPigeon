@@ -1,6 +1,28 @@
 # CarrierPigeon
 [![themaxhero](https://circleci.com/gh/themaxhero/CarrierPigeon.svg?style=svg)](https://circleci.com/gh/themaxhero/CarrierPigeon)
 
+## Introduction
+CarrierPigeon is a phoenix framework application for creating realtime chats.
+
+### Roadmap:
+ #### Now:
+  - [ ] Register Users
+  - [ ] User can have multiple profiles
+  - [ ] Add friends to a friend list
+  - [ ] Support private chats
+  - [ ] Support group chats
+  
+ #### Maybe Later:
+ - [ ] Support users blocking each other
+
+## How to get started
+  - Clone this repository
+  - Run `mix local.hex --force`
+  - Run `mix local.rebar --force`
+  - Run `mix deps.get`
+  - Setup your postgres
+  - 
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
