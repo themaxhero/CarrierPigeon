@@ -3,38 +3,46 @@ defmodule CarrierPigeon.Rooms do
   alias CarrierPigeon.Profiles.Profile, as: Profile
   alias CarrierPigeon.Rooms.Room, as: Room
   alias CarrierPigeon.Rooms.Message, as: Message
+  alias Functional.Result
 
   @spec list_rooms(String.t()) :: [Room.t()]
-  def list_rooms(profile_id) when is_binary(profile_id) do
-    profile_id
+  def list_rooms(profile_id) do
+    { :ok, dumped_id } = Ecto.UUID.dump(profile_id)
+
+    dumped_id
     |> Room.Query.all_rooms_for
     |> Repo.all
+    |> Enum.map(&preload_room/1)
+  end
+
+  defp preload_room(%Room{} = room) do
+    room
+    |> Repo.preload(:messages)
+    |> Repo.preload(:members)
+    |> Repo.preload(:owner)
+  end
+
+  defp preload_message(%Message{} = msg) do
+    msg
+    |> Repo.preload(:room)
+    |> Repo.preload(:sender)
   end
 
   @spec get_room(String.t()) ::
     { :ok, Room.t() }
     | { :error, %{ reason: String.t() } }
   def get_room(room_id) when is_binary(room_id) do
-    room =
-      Room
-      |> Repo.get(room_id)
-      |> Repo.preload(:messages)
-      |> Repo.preload(:members)
-      |> Repo.preload(:owner)
-
-    if room do
-      { :ok, room }
-    else
-      { :error, :room_not_found }
-    end
+    room = Repo.get(Room, room_id)
+    if room,
+      do: { :ok, preload_room(room) },
+      else: { :error, :room_not_found }
   end
 
   @spec get_room!(String.t()) :: Room.t()
   def get_room!(room_id) do
     Room
     |> Repo.get!(room_id)
-    |> Repo.preload(:messages)
-    |> Repo.preload(:members)
+    |> preload_room
   end
 
   @type create_room_params :: Room.creation_params
@@ -44,6 +52,7 @@ defmodule CarrierPigeon.Rooms do
     |> Room.changeset
     |> Ecto.Changeset.put_assoc(:members, members)
     |> Ecto.Changeset.put_assoc(:owner, profile)
+    |> Ecto.Changeset.put_assoc(:messages, [])
   end
 
   @spec create_room(Profile.t(), [Profile.t()], create_room_params) ::
@@ -53,6 +62,7 @@ defmodule CarrierPigeon.Rooms do
     profile
     |> create_room_helper(members, attrs)
     |> Repo.insert
+    |> Result.map(&preload_room/1)
   end
 
   @spec create_room!(Profile.t(), [Profile.t()], create_room_params) :: Room.t()
@@ -60,6 +70,7 @@ defmodule CarrierPigeon.Rooms do
     profile
     |> create_room_helper(members, attrs)
     |> Repo.insert!
+    |> preload_room
   end
 
   @type update_room_params :: Room.creation_params
@@ -67,16 +78,18 @@ defmodule CarrierPigeon.Rooms do
     { :ok, Room.t() }
     | { :error, %{ reason: String.t() }}
   def update_room(room_id, attrs) do
-    %Room{}
+    Room
     |> Repo.get(room_id)
+    |> preload_room
     |> Room.changeset(attrs)
     |> Repo.update
   end
 
   @spec update_room!(String.t(), update_room_params) :: Room.t()
   def update_room!(room_id, attrs) do
-    %Room{}
+    Room
     |> Repo.get(room_id)
+    |> preload_room
     |> Room.changeset(attrs)
     |> Repo.update!
   end
@@ -123,5 +136,6 @@ defmodule CarrierPigeon.Rooms do
     %Message{}
     |> Message.changeset(attrs)
     |> Repo.insert
+    |> Result.map(&preload_message/1)
   end
 end

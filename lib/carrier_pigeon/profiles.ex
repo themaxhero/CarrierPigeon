@@ -79,7 +79,7 @@ defmodule CarrierPigeon.Profiles do
     | { :error, atom() }
   def get_profile(profile_id) when is_binary(profile_id) do
     case Repo.get(Profile, profile_id) do
-      { :ok, %Profile{} = profile } ->
+      %Profile{} = profile ->
         profile =
           profile
           |> Repo.preload(:user)

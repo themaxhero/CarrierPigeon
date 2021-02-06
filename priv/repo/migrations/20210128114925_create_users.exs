@@ -63,11 +63,12 @@ defmodule CarrierPigeon.Repo.Migrations.CreateUsers do
         primary_key: true
 
       add :room_id,
-        references(:rooms, column: :room_id, type: :uuid),
-        null: false
+        references(:rooms, column: :room_id, type: :uuid, on_delete: :delete_all),
+        null: false,
+        on_delete: :delete_all
 
       add :profile_id,
-        references(:profiles, column: :profile_id, type: :uuid),
+        references(:profiles, column: :profile_id, type: :uuid, on_delete: :delete_all),
         null: false
 
       timestamps()
